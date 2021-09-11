@@ -9,15 +9,32 @@ suite('Triomino', () => {
         const tm = new Triomino();
         assert.notEqual(tm, undefined);
         assert.equal(tm.unplayed.size, 56);
-        console.log(tm.unplayed);
     })
 
     test('tiles', () => {
-        assert.equal(Triomino.includedTiles().length, 56);
-        assert.equal(Triomino.missingTiles().length, 20);
-        assert.equal(Triomino.allTiles().length, 76);
+        let tests = [
+            {tiles: Triomino.includedTiles(), count: 56},
+            {tiles: Triomino.missingTiles(), count: 20},
+            {tiles: Triomino.allTiles(), count: 76}
+        ];
+        for (let test of tests) {
+            assert.equal(test.tiles.length, test.count);
+            assert.isTrue(allUnique(test.tiles));
+        }
     });
 });
+
+function allUnique(items: Iterable<any>) {
+    let s = new Set();
+    for (let i of items) {
+        if (s.has(i)) {
+            console.log(`${i} is duplicated`)
+            return false;
+        }
+        s.add(i);
+    }
+    return true;
+}
 
 suite('Tile', () => {
     test('constructor', () => {
