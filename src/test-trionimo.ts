@@ -36,7 +36,15 @@ suite('Triomino', () => {
         // And removed from the as-yet unplayed set.
         assert.isFalse(tm.unplayed.has(tile));
         assert.equal(tm.unplayed.size, 55);
+
+        let tile2 = tm.unplayed.values().next().value;
+
+        assert.throws(() => {
+            tm.playTile(tile2, origin, 0);
+        }, "Cannot play");
     });
+
+
 });
 
 suite('Tile', () => {
