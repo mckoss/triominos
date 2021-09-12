@@ -1,4 +1,4 @@
-export { Triomino, TileDef, Tile, Value };
+export { Triomino, TileDef, Tile, Value, Position };
 
 type Value = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -54,7 +54,7 @@ class Triomino {
         return Triomino.includedTiles().concat(Triomino.missingTiles());
     }
 
-    getBoard(pos: Position): Tile | undefined {
+    getTile(pos: Position): Tile | undefined {
         return this.board.get(pos.key());
     }
 
@@ -77,7 +77,7 @@ class Tile {
     }
 
     getValue(vert: Vertex) : Value {
-        return this.def[(this.rot + vert) % 3];
+        return this.def[(vert - this.rot + 3) % 3];
     }
 
     toString() : string {
@@ -90,8 +90,8 @@ class Position {
     y: number;
 
     constructor(x = 0, y= 0) {
-        this.x = 0;
-        this.y = 0;
+        this.x = x;
+        this.y = y;
     }
 
     key() : PositionKey {

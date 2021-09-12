@@ -1,4 +1,4 @@
-export { Triomino, Tile };
+export { Triomino, Tile, Position };
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
@@ -31,7 +31,7 @@ class Triomino {
     static allTiles() {
         return Triomino.includedTiles().concat(Triomino.missingTiles());
     }
-    getBoard(pos) {
+    getTile(pos) {
         return this.board.get(pos.key());
     }
     playTile(tile, pos, rot) {
@@ -49,7 +49,7 @@ class Tile {
         this.def = def;
     }
     getValue(vert) {
-        return this.def[(this.rot + vert) % 3];
+        return this.def[(vert - this.rot + 3) % 3];
     }
     toString() {
         return "Tile ${this.def.join(', ')}";
@@ -57,8 +57,8 @@ class Tile {
 }
 class Position {
     constructor(x = 0, y = 0) {
-        this.x = 0;
-        this.y = 0;
+        this.x = x;
+        this.y = y;
     }
     key() {
         return `${this.x}-${this.y}`;
