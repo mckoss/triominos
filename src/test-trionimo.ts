@@ -30,6 +30,7 @@ suite('Triomino', () => {
         let tile = tm.unplayed.values().next().value;
         assert.notEqual(tile, undefined);
         tm.playTile(tile, origin, 0);
+
         // Played tile should be on the board.
         assert.equal(tm.getTile(origin), tile);
 
@@ -41,10 +42,31 @@ suite('Triomino', () => {
 
         assert.throws(() => {
             tm.playTile(tile2, origin, 0);
-        }, "Cannot play");
+        }, "No available play");
+
+        assert.throws(() => {
+            tm.playTile(tile2, new Position(10, 10), 0);
+        }, "No available play");
     });
 
+    test('availablePositions', () => {
+        let tm = new Triomino();
+        let origin = new Position();
+        let tile = tm.unplayed.values().next().value;
 
+        assert.equal(tm.available.size, 1);
+        assert.notEqual(tm.available.get('0, 0'), undefined);
+
+        tm.playTile(tile, origin, 0);
+        assert.equal(tm.available.size, 3);
+
+        tile = tm.unplayed.values().next().value;
+        tm.playTile(tile, new Position(0, 1), 0);
+        assert.equal(tm.available.size, 4);
+
+        assert.isTrue(tm.board.has('0, 0'));
+        assert.isTrue(tm.board.has('0, 1'));
+    });
 });
 
 suite('Tile', () => {
@@ -68,10 +90,25 @@ suite('Tile', () => {
 suite('Position', () => {
     test('constructor', () => {
         let p = new Position();
-        assert.equal(p.key(), '0-0');
+        assert.equal(p.key(), '0, 0');
 
         p = new Position(1, 2);
-        assert.equal(p.key(), '1-2');
+        assert.equal(p.key(), '1, 2');
+    })
+
+    test('adjacentPositions', () => {
+        let tests = [
+            { pos: new Position(), adjacents: [[0, 1], [0, -1], [-1, 1]] },
+            { pos: new Position(0, -1), adjacents: [[0, 0], [1, -2], [0, -2]] }
+        ];
+
+        for (let test of tests) {
+            let s = new Set(Array.from(test.pos.adjacentPositions(), value => value.key()));
+            assert.equal(s.size, 3);
+            for (let item of test.adjacents) {
+                assert.isTrue(s.has(new Position(item[0], item[1]).key()), `missing ${item} from ${Array.from(s.values())}`);
+            }
+        }
     })
 });
 

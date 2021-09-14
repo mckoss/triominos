@@ -2,7 +2,11 @@ export { Triomino, Tile, Position };
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
+        this.available = new Map();
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
+        this.available;
+        let origin = new Position();
+        this.available.set(origin.key(), origin);
     }
     static includedTiles() {
         let result = [];
@@ -34,13 +38,24 @@ class Triomino {
     getTile(pos) {
         return this.board.get(pos.key());
     }
+    canPlay(pos) {
+        return this.available.has(pos.key());
+    }
     playTile(tile, pos, rot) {
-        if (this.board.get(pos.key()) !== undefined) {
-            throw Error("Cannot play ${tile} over ${this.board.get(pos)}.");
+        if (!this.canPlay(pos)) {
+            throw Error("No available play for ${tile} at ${pos}.");
         }
         tile.rot = rot;
         this.board.set(pos.key(), tile);
         this.unplayed.delete(tile);
+        this.available.delete(pos.key());
+        // Add any adjacent unoccupied board positions to the available
+        // position set.
+        for (let posT of pos.adjacentPositions()) {
+            if (this.getTile(posT) === undefined) {
+                this.available.set(posT.key(), posT);
+            }
+        }
     }
 }
 class Tile {
@@ -61,7 +76,19 @@ class Position {
         this.y = y;
     }
     key() {
-        return `${this.x}-${this.y}`;
+        return `${this.x}, ${this.y}`;
+    }
+    *adjacentPositions() {
+        let rel = [[0, 1], [0, -1]];
+        if (this.y % 2 === 0) {
+            rel.push([-1, 1]);
+        }
+        else {
+            rel.push([1, -1]);
+        }
+        for (let r of rel) {
+            yield new Position(this.x + r[0], this.y + r[1]);
+        }
     }
 }
 //# sourceMappingURL=triomino.js.map
