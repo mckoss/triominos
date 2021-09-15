@@ -1,11 +1,11 @@
-export { Triomino, Tile, Position };
+export { Triomino, Tile, TilePos, VertexPos };
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
         this.available = new Map();
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
         this.available;
-        let origin = new Position();
+        let origin = new TilePos();
         this.available.set(origin.key(), origin);
     }
     static includedTiles() {
@@ -67,10 +67,10 @@ class Tile {
         return this.def[(vert - this.rot + 3) % 3];
     }
     toString() {
-        return "Tile ${this.def.join(', ')}";
+        return `Tile<${this.def.join(', ')}>`;
     }
 }
-class Position {
+class TilePos {
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
@@ -87,8 +87,30 @@ class Position {
             rel.push([1, -1]);
         }
         for (let r of rel) {
-            yield new Position(this.x + r[0], this.y + r[1]);
+            yield new TilePos(this.x + r[0], this.y + r[1]);
         }
+    }
+    *getVertices() {
+        let rel;
+        let base = [this.x, Math.floor(this.y / 2)];
+        if (this.y % 2 === 0) {
+            rel = [[0, 0], [0, 1], [1, 0]];
+        }
+        else {
+            rel = [[0, 1], [1, 1], [1, 0]];
+        }
+        for (let r of rel) {
+            yield new VertexPos(this.x + r[0], Math.floor(this.y / 2) + r[1]);
+        }
+    }
+}
+class VertexPos {
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+    }
+    key() {
+        return `V${this.x}, ${this.y}`;
     }
 }
 //# sourceMappingURL=triomino.js.map

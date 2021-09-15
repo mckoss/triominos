@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha';
 import { assert } from 'chai';
-import { Triomino, Tile, Position } from './triomino.js';
+import { Triomino, Tile, TilePos, VertexPos } from './triomino.js';
 suite('Triomino', () => {
     test('constructor', () => {
         const tm = new Triomino();
@@ -20,7 +20,7 @@ suite('Triomino', () => {
     });
     test('getTile/playTile', () => {
         let tm = new Triomino();
-        let origin = new Position();
+        let origin = new TilePos();
         assert.equal(tm.getTile(origin), undefined);
         let tile = tm.unplayed.values().next().value;
         assert.notEqual(tile, undefined);
@@ -35,23 +35,22 @@ suite('Triomino', () => {
             tm.playTile(tile2, origin, 0);
         }, "No available play");
         assert.throws(() => {
-            tm.playTile(tile2, new Position(10, 10), 0);
+            tm.playTile(tile2, new TilePos(10, 10), 0);
         }, "No available play");
     });
     test('availablePositions', () => {
         let tm = new Triomino();
-        let origin = new Position();
+        let origin = new TilePos();
         let tile = tm.unplayed.values().next().value;
         assert.equal(tm.available.size, 1);
         assert.notEqual(tm.available.get('0, 0'), undefined);
         tm.playTile(tile, origin, 0);
         assert.equal(tm.available.size, 3);
         tile = tm.unplayed.values().next().value;
-        tm.playTile(tile, new Position(0, 1), 0);
+        tm.playTile(tile, new TilePos(0, 1), 0);
         assert.equal(tm.available.size, 4);
         assert.isTrue(tm.board.has('0, 0'));
         assert.isTrue(tm.board.has('0, 1'));
-        console.log(Array.from(tm.available.values()));
     });
 });
 suite('Tile', () => {
@@ -69,26 +68,48 @@ suite('Tile', () => {
         t.rot = 2;
         assert.equal(t.getValue(0), 2);
     });
+    test('toString', () => {
+        let t = new Tile([1, 2, 3]);
+        assert.equal(t.toString(), 'Tile<1, 2, 3>');
+    });
 });
-suite('Position', () => {
+suite('Tile Position', () => {
     test('constructor', () => {
-        let p = new Position();
+        let p = new TilePos();
         assert.equal(p.key(), '0, 0');
-        p = new Position(1, 2);
+        p = new TilePos(1, 2);
         assert.equal(p.key(), '1, 2');
     });
     test('adjacentPositions', () => {
         let tests = [
-            { pos: new Position(), adjacents: [[0, 1], [0, -1], [-1, 1]] },
-            { pos: new Position(0, -1), adjacents: [[0, 0], [1, -2], [0, -2]] }
+            { pos: new TilePos(), adjacents: [[0, 1], [0, -1], [-1, 1]] },
+            { pos: new TilePos(0, -1), adjacents: [[0, 0], [1, -2], [0, -2]] }
         ];
         for (let test of tests) {
             let s = new Set(Array.from(test.pos.adjacentPositions(), value => value.key()));
             assert.equal(s.size, 3);
             for (let item of test.adjacents) {
-                assert.isTrue(s.has(new Position(item[0], item[1]).key()), `missing ${item} from ${Array.from(s.values())}`);
+                assert.isTrue(s.has(new TilePos(item[0], item[1]).key()), `missing ${item} from ${Array.from(s.values())}`);
             }
         }
+    });
+    test('getVertices', () => {
+        let tests = [
+            { pos: new TilePos(0, 0), verts: ['V0, 0', 'V0, 1', 'V1, 0'] },
+            { pos: new TilePos(0, 1), verts: ['V0, 1', 'V1, 1', 'V1, 0'] },
+            { pos: new TilePos(0, 2), verts: ['V0, 1', 'V0, 2', 'V1, 1'] },
+            { pos: new TilePos(1, 0), verts: ['V1, 0', 'V1, 1', 'V2, 0'] },
+        ];
+        for (let test of tests) {
+            let v = Array.from(test.pos.getVertices()).map(v => v.key());
+            assert.deepEqual(v, test.verts, test.pos.key());
+        }
+    });
+});
+suite('Vertex Position', () => {
+    test('constructor', () => {
+        let v = new VertexPos();
+        assert.equal(v.key(), 'V0, 0');
     });
 });
 // Helper function - return true if all in Iterable are different.

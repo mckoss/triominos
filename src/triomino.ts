@@ -1,4 +1,4 @@
-export { Triomino, TileDef, Tile, Value, Position };
+export { Triomino, TileDef, Tile, Value, TilePos, VertexPos };
 
 type Value = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -11,18 +11,19 @@ type Rotation = 0 | 1 | 2;
 // The names of the positions of the triangle (left, top, right).
 type Vertex = 0 | 1 | 2;
 
-type PositionKey = string;
+type TilePosKey = string;
+type VertPosKey = string;
 
 class Triomino {
-    board: Map<PositionKey, Tile> = new Map();
+    board: Map<TilePosKey, Tile> = new Map();
     unplayed: Set<Tile>;
-    available: Map<PositionKey, Position> = new Map();
+    available: Map<TilePosKey, TilePos> = new Map();
 
     constructor(tiles = Triomino.includedTiles()) {
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
         this.available 
 
-        let origin = new Position();
+        let origin = new TilePos();
         this.available.set(origin.key(), origin);
     }
 
@@ -59,15 +60,15 @@ class Triomino {
         return Triomino.includedTiles().concat(Triomino.missingTiles());
     }
 
-    getTile(pos: Position): Tile | undefined {
+    getTile(pos: TilePos): Tile | undefined {
         return this.board.get(pos.key());
     }
 
-    canPlay(pos: Position): boolean {
+    canPlay(pos: TilePos): boolean {
         return this.available.has(pos.key());
     }
 
-    playTile(tile: Tile, pos: Position, rot: Rotation) {
+    playTile(tile: Tile, pos: TilePos, rot: Rotation) {
         if (!this.canPlay(pos)) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
@@ -99,11 +100,11 @@ class Tile {
     }
 
     toString() : string {
-        return "Tile ${this.def.join(', ')}";
+        return `Tile<${this.def.join(', ')}>`;
     }
 }
 
-class Position {
+class TilePos {
     x: number;
     y: number;
 
@@ -112,11 +113,11 @@ class Position {
         this.y = y;
     }
 
-    key() : PositionKey {
+    key() : TilePosKey {
         return `${this.x}, ${this.y}`;
     }
 
-    *adjacentPositions(): Generator<Position> {
+    *adjacentPositions(): Generator<TilePos> {
         let rel = [[0, 1], [0, -1]];
         if (this.y % 2 === 0) {
             rel.push([-1, 1]);
@@ -124,7 +125,37 @@ class Position {
             rel.push([1, -1]);
         }
         for (let r of rel) {
-            yield new Position(this.x + r[0], this.y + r[1]);
+            yield new TilePos(this.x + r[0], this.y + r[1]);
         }
+    }
+
+    *getVertices() : Generator<VertexPos> {
+        let rel: [number, number][];
+
+        let base = [this.x, Math.floor(this.y / 2)];
+
+        if (this.y % 2 === 0) {
+            rel = [[0, 0], [0, 1], [1, 0]];
+        } else {
+            rel = [[0, 1], [1, 1], [1, 0]];
+        }
+        
+        for (let r of rel) {
+            yield new VertexPos(this.x + r[0], Math.floor(this.y / 2) + r[1]);
+        }
+    }
+}
+
+class VertexPos {
+    x: number;
+    y: number;
+
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+    }
+
+    key() : VertPosKey {
+        return `V${this.x}, ${this.y}`;
     }
 }
