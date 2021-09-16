@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha';
 import { assert} from 'chai';
-import { Triomino, Tile, Value, TilePos, VertexPos } from './triomino.js'
+import { Triomino, Tile, Value, TilePos, VertexPos, TileDef, Rotation } from './triomino.js'
 
 suite('Triomino', () => {
 
@@ -29,7 +29,7 @@ suite('Triomino', () => {
 
         let tile = tm.unplayed.values().next().value;
         assert.notEqual(tile, undefined);
-        tm.playTile(tile, origin, 0);
+        tm.playTile(tile, origin);
 
         // Played tile should be on the board.
         assert.equal(tm.getTile(origin), tile);
@@ -41,16 +41,34 @@ suite('Triomino', () => {
         let tile2 = tm.unplayed.values().next().value;
 
         assert.throws(() => {
-            tm.playTile(tile2, origin, 0);
+            tm.playTile(tile2, origin);
         }, "No available play");
 
         assert.throws(() => {
-            tm.playTile(tile2, new TilePos(10, 10), 0);
+            tm.playTile(tile2, new TilePos(10, 10));
         }, "No available play");
     });
 
     test('vertexValues', () => {
-        
+        let tm = new Triomino();
+        let origin = new TilePos();
+
+        assert.deepEqual(tm.vertexValues(origin), [undefined, undefined, undefined]);
+
+        let tile = tm.unplayed.values().next().value;
+        assert.equal(tm.canPlay(tile, origin), 0);
+
+        tm.playTile(tile, origin);
+        assert.deepEqual(tm.vertexValues(origin), [0, 0, 0]);
+        let nextPos = new TilePos(0, 1);
+        assert.deepEqual(tm.vertexValues(nextPos), [0, undefined, 0]);
+
+        let tile2 = tm.unplayed.values().next().value;
+        assert.deepEqual(tile2.def, [0, 0, 1]);
+
+        assert.equal(tm.canPlay(tile2, nextPos), 2);
+        tm.playTile(tile2, nextPos);
+        assert.deepEqual(tm.vertexValues(nextPos), [0, 1, 0]);
     })
 
     test('availablePositions', () => {
@@ -61,11 +79,11 @@ suite('Triomino', () => {
         assert.equal(tm.available.size, 1);
         assert.notEqual(tm.available.get('0, 0'), undefined);
 
-        tm.playTile(tile, origin, 0);
+        tm.playTile(tile, origin);
         assert.equal(tm.available.size, 3);
 
         tile = tm.unplayed.values().next().value;
-        tm.playTile(tile, new TilePos(0, 1), 0);
+        tm.playTile(tile, new TilePos(0, 1));
         assert.equal(tm.available.size, 4);
 
         assert.isTrue(tm.board.has('0, 0'));
@@ -93,6 +111,20 @@ suite('Tile', () => {
     test('toString', () => {
         let t = new Tile([1, 2, 3]);
         assert.equal(t.toString(), 'Tile<1, 2, 3>');
+    })
+
+    test('matchRotation', () => {
+        let tests: {pattern: TileDef, rot: (Rotation | undefined)}[] = [
+            {pattern: [1, 2, 3], rot: 0},
+            {pattern: [3, 1, 2], rot: 1},
+            {pattern: [2, 3, 1], rot: 2},
+            {pattern: [1, 2, 2], rot: undefined},
+        ]
+        let t = new Tile([1, 2, 3]);
+
+        for (let test of tests) {
+            assert.equal(t.matchRotation(test.pattern), test.rot, `${test.pattern} => ${test.rot}`);
+        }
     })
 });
 

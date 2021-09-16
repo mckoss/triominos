@@ -5,7 +5,7 @@ class Triomino {
         this.available = new Map();
         this.vertices = new Map();
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
-        this.available;
+        // The first tile must be played at the origin.
         let origin = new TilePos();
         this.available.set(origin.key(), origin);
     }
@@ -48,14 +48,21 @@ class Triomino {
     // If tile is playable at a position, return the
     // rotation needed.
     canPlay(tile, pos) {
+        if (!this.unplayed.has(tile)) {
+            console.log(this.unplayed);
+            throw ("Playable tiles must come from the unplayed set.");
+        }
         if (!this.isPosAvailable(pos)) {
             return undefined;
         }
         return tile.matchRotation(this.vertexValues(pos));
     }
-    playTile(tile, pos, rot) {
-        // Redundant test - remove it?
-        if (this.canPlay(tile, pos) === undefined) {
+    playTile(tile, pos) {
+        // There are never two distinct rotations for playing a tile
+        // except the trivial case of all values equal.  So
+        // determine the rotation to use when playing a tile.
+        let rot = this.canPlay(tile, pos);
+        if (rot === undefined) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
         tile.rot = rot;
@@ -94,6 +101,8 @@ class Tile {
     toString() {
         return `Tile<${this.def.join(', ')}>`;
     }
+    // Determine the (clockwise) rotation of a tile to match the given
+    // values.
     matchRotation(values) {
         rotloop: for (let rot = 0; rot < 3; rot++) {
             for (let i = 0; i < 3; i++) {

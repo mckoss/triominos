@@ -1,7 +1,10 @@
-export { Triomino, TileDef, Tile, Value, TilePos, VertexPos };
+export { Triomino, TileDef, Tile, Value, TilePos, VertexPos, Rotation };
 
 type Value = 0 | 1 | 2 | 3 | 4 | 5;
 
+// Tiles are oriented so the values are
+// defined as lower-left, top, and lower right
+// (i.e. clockwise around the tile).
 type TileDef = [Value, Value, Value];
 
 // Tiles in the 0 orientation are listed as left, top, right values.
@@ -22,8 +25,8 @@ class Triomino {
 
     constructor(tiles = Triomino.includedTiles()) {
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
-        this.available 
 
+        // The first tile must be played at the origin.
         let origin = new TilePos();
         this.available.set(origin.key(), origin);
     }
@@ -76,6 +79,11 @@ class Triomino {
     // If tile is playable at a position, return the
     // rotation needed.
     canPlay(tile: Tile, pos: TilePos): Rotation | undefined {
+        if (!this.unplayed.has(tile)) {
+            console.log(this.unplayed);
+            throw("Playable tiles must come from the unplayed set.");
+        }
+
         if (!this.isPosAvailable(pos)) {
             return undefined;
         }
@@ -83,9 +91,12 @@ class Triomino {
         return tile.matchRotation(this.vertexValues(pos));
     }
 
-    playTile(tile: Tile, pos: TilePos, rot: Rotation) {
-        // Redundant test - remove it?
-        if (this.canPlay(tile, pos) === undefined) {
+    playTile(tile: Tile, pos: TilePos) {
+        // There are never two distinct rotations for playing a tile
+        // except the trivial case of all values equal.  So
+        // determine the rotation to use when playing a tile.
+        let rot = this.canPlay(tile, pos);
+        if (rot === undefined) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
         tile.rot = rot;
@@ -131,6 +142,8 @@ class Tile {
         return `Tile<${this.def.join(', ')}>`;
     }
 
+    // Determine the (clockwise) rotation of a tile to match the given
+    // values.
     matchRotation(values: (Value | undefined)[]) : (Rotation | undefined) {
         rotloop:
         for (let rot: Rotation = 0; rot < 3; rot++) {
