@@ -18,6 +18,15 @@ suite('Triomino', () => {
             assert.isTrue(allUnique(test.tiles));
         }
     });
+    test('canPlay', () => {
+        let tm = new Triomino();
+        let origin = new TilePos();
+        let tile = tm.unplayed.values().next().value;
+        assert.equal(tm.canPlay(tile, origin), 0);
+        assert.throws(() => {
+            tm.canPlay(new Tile([0, 0, 0]), origin);
+        }, "unplayed set");
+    });
     test('getTile/playTile', () => {
         let tm = new Triomino();
         let origin = new TilePos();

@@ -80,7 +80,6 @@ class Triomino {
     // rotation needed.
     canPlay(tile: Tile, pos: TilePos): Rotation | undefined {
         if (!this.unplayed.has(tile)) {
-            console.log(this.unplayed);
             throw("Playable tiles must come from the unplayed set.");
         }
 
