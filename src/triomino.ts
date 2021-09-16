@@ -18,6 +18,7 @@ class Triomino {
     board: Map<TilePosKey, Tile> = new Map();
     unplayed: Set<Tile>;
     available: Map<TilePosKey, TilePos> = new Map();
+    vertices: Map<VertPosKey, VertexInfo> = new Map();
 
     constructor(tiles = Triomino.includedTiles()) {
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
@@ -64,12 +65,27 @@ class Triomino {
         return this.board.get(pos.key());
     }
 
-    canPlay(pos: TilePos): boolean {
+    isPosAvailable(pos: TilePos): boolean {
         return this.available.has(pos.key());
     }
 
+    vertexValues(pos: TilePos) : (Value | undefined)[] {
+        return Array.from(pos.getVertices()).map(vpos => this.vertices.get(vpos.key())?.value);
+    }
+
+    // If tile is playable at a position, return the
+    // rotation needed.
+    canPlay(tile: Tile, pos: TilePos): Rotation | undefined {
+        if (!this.isPosAvailable(pos)) {
+            return undefined;
+        }
+
+        return tile.matchRotation(this.vertexValues(pos));
+    }
+
     playTile(tile: Tile, pos: TilePos, rot: Rotation) {
-        if (!this.canPlay(pos)) {
+        // Redundant test - remove it?
+        if (this.canPlay(tile, pos) === undefined) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
         tile.rot = rot;
@@ -83,6 +99,18 @@ class Triomino {
             if (this.getTile(posT) === undefined) {
                 this.available.set(posT.key(), posT);
             }
+        }
+
+        // Update the vertex info
+        let i: Vertex = 0;
+        for (let vpos of pos.getVertices()) {
+            let info = this.vertices.get(vpos.key());
+            if (info === undefined) {
+                this.vertices.set(vpos.key(), new VertexInfo(tile.getValue(i)));
+            } else {
+                info.count += 1;
+            }
+            i = <Vertex> (i + 1);
         }
     }
 }
@@ -101,6 +129,22 @@ class Tile {
 
     toString() : string {
         return `Tile<${this.def.join(', ')}>`;
+    }
+
+    matchRotation(values: (Value | undefined)[]) : (Rotation | undefined) {
+        rotloop:
+        for (let rot: Rotation = 0; rot < 3; rot++) {
+            for (let i: Vertex = 0; i < 3; i++) {
+                if (values[i] === undefined) {
+                    continue;
+                }
+                if (values[i] !== this.def[(i - rot + 3) % 3]) {
+                    continue rotloop;
+                }
+            }
+            return rot;
+        }
+        return undefined;
     }
 }
 
@@ -157,5 +201,14 @@ class VertexPos {
 
     key() : VertPosKey {
         return `V${this.x}, ${this.y}`;
+    }
+}
+
+class VertexInfo {
+    value: Value;
+    count = 1;
+
+    constructor(value: Value) {
+        this.value = value;
     }
 }

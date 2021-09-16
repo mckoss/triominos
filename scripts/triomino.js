@@ -3,6 +3,7 @@ class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
         this.available = new Map();
+        this.vertices = new Map();
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
         this.available;
         let origin = new TilePos();
@@ -38,11 +39,23 @@ class Triomino {
     getTile(pos) {
         return this.board.get(pos.key());
     }
-    canPlay(pos) {
+    isPosAvailable(pos) {
         return this.available.has(pos.key());
     }
+    vertexValues(pos) {
+        return Array.from(pos.getVertices()).map(vpos => { var _a; return (_a = this.vertices.get(vpos.key())) === null || _a === void 0 ? void 0 : _a.value; });
+    }
+    // If tile is playable at a position, return the
+    // rotation needed.
+    canPlay(tile, pos) {
+        if (!this.isPosAvailable(pos)) {
+            return undefined;
+        }
+        return tile.matchRotation(this.vertexValues(pos));
+    }
     playTile(tile, pos, rot) {
-        if (!this.canPlay(pos)) {
+        // Redundant test - remove it?
+        if (this.canPlay(tile, pos) === undefined) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
         tile.rot = rot;
@@ -56,6 +69,18 @@ class Triomino {
                 this.available.set(posT.key(), posT);
             }
         }
+        // Update the vertex info
+        let i = 0;
+        for (let vpos of pos.getVertices()) {
+            let info = this.vertices.get(vpos.key());
+            if (info === undefined) {
+                this.vertices.set(vpos.key(), new VertexInfo(tile.getValue(i)));
+            }
+            else {
+                info.count += 1;
+            }
+            i = (i + 1);
+        }
     }
 }
 class Tile {
@@ -68,6 +93,20 @@ class Tile {
     }
     toString() {
         return `Tile<${this.def.join(', ')}>`;
+    }
+    matchRotation(values) {
+        rotloop: for (let rot = 0; rot < 3; rot++) {
+            for (let i = 0; i < 3; i++) {
+                if (values[i] === undefined) {
+                    continue;
+                }
+                if (values[i] !== this.def[(i - rot + 3) % 3]) {
+                    continue rotloop;
+                }
+            }
+            return rot;
+        }
+        return undefined;
     }
 }
 class TilePos {
@@ -111,6 +150,12 @@ class VertexPos {
     }
     key() {
         return `V${this.x}, ${this.y}`;
+    }
+}
+class VertexInfo {
+    constructor(value) {
+        this.count = 1;
+        this.value = value;
     }
 }
 //# sourceMappingURL=triomino.js.map

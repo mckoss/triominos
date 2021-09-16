@@ -38,6 +38,8 @@ suite('Triomino', () => {
             tm.playTile(tile2, new TilePos(10, 10), 0);
         }, "No available play");
     });
+    test('vertexValues', () => {
+    });
     test('availablePositions', () => {
         let tm = new Triomino();
         let origin = new TilePos();

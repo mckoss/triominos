@@ -49,6 +49,10 @@ suite('Triomino', () => {
         }, "No available play");
     });
 
+    test('vertexValues', () => {
+        
+    })
+
     test('availablePositions', () => {
         let tm = new Triomino();
         let origin = new TilePos();
