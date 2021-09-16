@@ -22,16 +22,32 @@ suite('Triomino', () => {
         }
     });
 
-    test('canPlay', () => {
+    test('playableRot', () => {
         let tm = new Triomino();
         let origin = new TilePos();
 
         let tile = tm.unplayed.values().next().value;
-        assert.equal(tm.canPlay(tile, origin), 0);
+        assert.equal(tm.playableRot(tile, origin), 0);
 
         assert.throws(() => {
-            tm.canPlay(new Tile([0, 0, 0]), origin);
+            tm.playableRot(new Tile([0, 0, 0]), origin);
         }, "unplayed set");
+    });
+
+    test('playableTiles', () => {
+        let tm = new Triomino();
+        assert.equal(countIter(tm.playableTiles()), 56);
+
+        let tile = tm.unplayed.values().next().value;
+        tm.playTile(tile, new TilePos());
+        assert.deepEqual(Array.from(tm.playableTiles()).map(tile => `${tile}`),
+            [
+                "Tile<0, 0, 1>",
+                "Tile<0, 0, 2>",
+                "Tile<0, 0, 3>",
+                "Tile<0, 0, 4>",
+                "Tile<0, 0, 5>"
+            ]);
     });
 
     test('getTile/playTile', () => {
@@ -68,7 +84,7 @@ suite('Triomino', () => {
         assert.deepEqual(tm.vertexValues(origin), [undefined, undefined, undefined]);
 
         let tile = tm.unplayed.values().next().value;
-        assert.equal(tm.canPlay(tile, origin), 0);
+        assert.equal(tm.playableRot(tile, origin), 0);
 
         tm.playTile(tile, origin);
         assert.deepEqual(tm.vertexValues(origin), [0, 0, 0]);
@@ -78,7 +94,7 @@ suite('Triomino', () => {
         let tile2 = tm.unplayed.values().next().value;
         assert.deepEqual(tile2.def, [0, 0, 1]);
 
-        assert.equal(tm.canPlay(tile2, nextPos), 2);
+        assert.equal(tm.playableRot(tile2, nextPos), 2);
         tm.playTile(tile2, nextPos);
         assert.deepEqual(tm.vertexValues(nextPos), [0, 1, 0]);
     })
@@ -197,4 +213,12 @@ function allUnique(items: Iterable<any>) {
         s.add(i);
     }
     return true;
+}
+
+function countIter(iter: Iterable<any>) {
+    let count = 0;
+    for (let i of iter) {
+        count += 1;
+    }
+    return count;
 }

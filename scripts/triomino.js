@@ -47,7 +47,7 @@ class Triomino {
     }
     // If tile is playable at a position, return the
     // rotation needed.
-    canPlay(tile, pos) {
+    playableRot(tile, pos) {
         if (!this.unplayed.has(tile)) {
             throw ("Playable tiles must come from the unplayed set.");
         }
@@ -56,11 +56,21 @@ class Triomino {
         }
         return tile.matchRotation(this.vertexValues(pos));
     }
+    *playableTiles() {
+        for (let tile of this.unplayed) {
+            for (let pos of this.available.values()) {
+                if (this.playableRot(tile, pos) !== undefined) {
+                    yield tile;
+                    break;
+                }
+            }
+        }
+    }
     playTile(tile, pos) {
         // There are never two distinct rotations for playing a tile
         // except the trivial case of all values equal.  So
         // determine the rotation to use when playing a tile.
-        let rot = this.canPlay(tile, pos);
+        let rot = this.playableRot(tile, pos);
         if (rot === undefined) {
             throw Error("No available play for ${tile} at ${pos}.");
         }
@@ -124,6 +134,9 @@ class TilePos {
     }
     key() {
         return `${this.x}, ${this.y}`;
+    }
+    toString() {
+        return this.key();
     }
     *adjacentPositions() {
         let rel = [[0, 1], [0, -1]];
