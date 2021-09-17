@@ -1,4 +1,5 @@
 export { Triomino, TileDef, Tile, Value, TilePos, VertexPos, Rotation };
+import { cloneMap, cloneSet } from './clone-utils.js';
 
 type Value = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -64,6 +65,15 @@ class Triomino {
         return Triomino.includedTiles().concat(Triomino.missingTiles());
     }
 
+    clone(): Triomino {
+        let tm = new Triomino([]);
+        tm.board = cloneMap(this.board);
+        tm.unplayed = new Set(this.unplayed);
+        tm.available = new Map(this.available);
+        tm.vertices = cloneMap(this.vertices);
+        return tm;
+    }
+
     getTile(pos: TilePos): Tile | undefined {
         return this.board.get(pos.key());
     }
@@ -107,7 +117,7 @@ class Triomino {
         // determine the rotation to use when playing a tile.
         let rot = this.playableRot(tile, pos);
         if (rot === undefined) {
-            throw Error("No available play for ${tile} at ${pos}.");
+            throw Error(`No available play for ${tile} at ${pos}.`);
         }
         tile.rot = rot;
         this.board.set(pos.key(), tile);
@@ -142,6 +152,12 @@ class Tile {
 
     constructor(def: TileDef) {
         this.def = def;
+    }
+
+    clone(): Tile {
+        let result = new Tile(this.def);
+        result.rot = this.rot;
+        return result;
     }
 
     getValue(vert: Vertex) : Value {
@@ -185,7 +201,7 @@ class TilePos {
     }
 
     toString(): string {
-        return this.key();
+        return `(${this.key()})`;
     }
 
     *adjacentPositions(): Generator<TilePos> {
@@ -237,5 +253,11 @@ class VertexInfo {
 
     constructor(value: Value) {
         this.value = value;
+    }
+
+    clone(): VertexInfo {
+        let result = new VertexInfo(this.value);
+        result.count = this.count;
+        return result;
     }
 }
