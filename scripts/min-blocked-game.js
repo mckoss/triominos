@@ -1,15 +1,14 @@
-import { Triomino, TilePos } from './triomino.js';
+import { Triomino, Tile, TilePos } from './triomino.js';
 // Search for the minimum number of tiles that can be played
 // such that there are NO more plays possible.
 //
 // Use a greedy approach to play tiles that have a minimum of possible
 // successive plays, until the number of possible remaining plays is empty.
-function findMinBlocked(tm) {
+function findMinBlocked(tm, startTile) {
     // play 0, 0, 0, first (other values have different size solutions!)
-    let first = tm.unplayed.values().next().value;
     let origin = new TilePos();
-    tm.playTile(first, origin);
-    console.log(`1. Play ${first} at ${origin} (for (${countIter(tm.playableTiles())} playable tiles.)`);
+    tm.playTile(startTile, origin);
+    console.log(`1. Play ${startTile} at ${origin} (for (${countIter(tm.playableTiles())} playable tiles.)`);
     let playNum = 2;
     while (true) {
         let best;
@@ -27,20 +26,29 @@ function findMinBlocked(tm) {
                     if (bestCount === undefined || count < bestCount) {
                         // console.log(`Found candidate ${tile} at ${pos} (${count})`);
                         bestCount = count;
-                        best = [tile, pos];
+                        best = [tile, pos, Array.from(tmChild.playableTiles())];
                     }
                 }
             }
         }
         console.log(`${playNum++}. Play ${best[0]} at ${best[1]} (for ${bestCount} playable tiles)`);
+        if (bestCount !== undefined && bestCount < 10) {
+            console.log(`    ${best[2].join(', ')}`);
+        }
         tm.playTile(best[0], best[1]);
         if (bestCount === 0) {
             break;
         }
     }
+    console.log();
 }
-let tm = new Triomino();
-findMinBlocked(tm);
+for (let v = 0; v < 6; v = (v + 1)) {
+    findMinBlocked(new Triomino(), new Tile([v, v, v]));
+}
+let fullTiles = Triomino.includedTiles().concat(Triomino.missingTiles());
+for (let v = 0; v < 6; v = (v + 1)) {
+    findMinBlocked(new Triomino(fullTiles), new Tile([v, v, v]));
+}
 function countIter(iter) {
     let count = 0;
     for (let i of iter) {
