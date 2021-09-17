@@ -28,9 +28,10 @@ suite('Triomino', () => {
 
         let tile = tm.unplayed.values().next().value;
         assert.equal(tm.playableRot(tile, origin), 0);
+        assert.equal(tm.playableRot(new Tile([0, 0, 0]), origin), 0);
 
         assert.throws(() => {
-            tm.playableRot(new Tile([0, 0, 0]), origin);
+            tm.playableRot(new Tile([2, 1, 3]), origin);
         }, "unplayed set");
     });
 
@@ -91,7 +92,7 @@ suite('Triomino', () => {
         let nextPos = new TilePos(0, 1);
         assert.deepEqual(tm.vertexValues(nextPos), [0, undefined, 0]);
 
-        let tile2 = tm.unplayed.values().next().value;
+        let tile2 = <Tile> tm.unplayed.values().next().value;
         assert.deepEqual(tile2.def, [0, 0, 1]);
 
         assert.equal(tm.playableRot(tile2, nextPos), 2);
@@ -112,6 +113,7 @@ suite('Triomino', () => {
 
         tile = tm.unplayed.values().next().value;
         tm.playTile(tile, new TilePos(0, 1));
+        console.log('1');
         assert.equal(tm.available.size, 4);
 
         assert.isTrue(tm.board.has('0, 0'));
@@ -125,15 +127,39 @@ suite('Tile', () => {
         assert.notEqual(t, undefined);
     })
 
+    test('value type', () => {
+        let t1 = new Tile([0, 0, 0]);
+        let t2 = new Tile([0, 0, 0]);
+        let t3 = new Tile([0, 0, 0], 1);
+        assert.equal(t1, t2);
+        assert.notEqual(t1, t3);
+        let s: Set<Tile> = new Set();
+        s.add(t1);
+        assert.isTrue(s.has(t2));
+    });
+
+    test('key', () => {
+        let t = new Tile([1, 2, 3]);
+        assert.equal(t.key(), '<1, 2, 3>');
+        t = t.rotateTo(1);
+        assert.equal(t.key(), '<1, 2, 3>@1');
+    });
+
     test('Vertices', () => {
-        const t = new Tile([1, 2, 3]);
+        let t = new Tile([1, 2, 3]);
+        let tZero = t;
         assert.equal(t.getValue(0), 1, '0');
         assert.equal(t.getValue(1), 2, '1');
         assert.equal(t.getValue(2), 3, '2');
-        t.rot = 1;
+        t = t.rotate(1);
+        assert.equal(t.rot, 1);
         assert.equal(t.getValue(0), 3);
-        t.rot = 2;
+        t = t.rotate(1);
+        assert.equal(t.rot, 2);
         assert.equal(t.getValue(0), 2);
+        t = t.rotate(1);
+        assert.equal(t.rot, 0);
+        assert.equal(t, tZero);
     });
 
     test('toString', () => {

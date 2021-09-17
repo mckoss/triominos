@@ -67,7 +67,7 @@ class Triomino {
 
     clone(): Triomino {
         let tm = new Triomino([]);
-        tm.board = cloneMap(this.board);
+        tm.board = new Map(this.board);
         tm.unplayed = new Set(this.unplayed);
         tm.available = new Map(this.available);
         tm.vertices = cloneMap(this.vertices);
@@ -119,8 +119,8 @@ class Triomino {
         if (rot === undefined) {
             throw Error(`No available play for ${tile} at ${pos}.`);
         }
-        tile.rot = rot;
-        this.board.set(pos.key(), tile);
+        const rotatedTile = tile.rotateTo(rot);
+        this.board.set(pos.key(), rotatedTile);
         this.unplayed.delete(tile);
         this.available.delete(pos.key());
 
@@ -137,7 +137,7 @@ class Triomino {
         for (let vpos of pos.getVertices()) {
             let info = this.vertices.get(vpos.key());
             if (info === undefined) {
-                this.vertices.set(vpos.key(), new VertexInfo(tile.getValue(i)));
+                this.vertices.set(vpos.key(), new VertexInfo(rotatedTile.getValue(i)));
             } else {
                 info.count += 1;
             }
@@ -146,18 +146,29 @@ class Triomino {
     }
 }
 
-class Tile {
-    def: TileDef;
-    rot: Rotation = 0;
+// The Tile class returns IMMUTABLE objects.  Further, these
+// can be used as VALUE types; two tiles constructed from
+// the same parameters will return IDENTICAL objects.
+// This means they can be placed in Set's and used
+// as keys in Maps.
 
-    constructor(def: TileDef) {
+const canonicalTiles: Map<string, Tile> = new Map();
+
+class Tile {
+    readonly def: TileDef;
+    readonly rot: Rotation;
+
+    constructor(def: TileDef, rot: Rotation = 0) {
         this.def = def;
+        this.rot = <Rotation> (rot % 3);
+        if (canonicalTiles.has(this.key())) {
+            return canonicalTiles.get(this.key())!;
+        }
+        canonicalTiles.set(this.key(), this);
     }
 
-    clone(): Tile {
-        let result = new Tile(this.def);
-        result.rot = this.rot;
-        return result;
+    key(): string {
+        return `<${this.def.join(', ')}>${this.rot !== 0 ? '@' + this.rot : ''}`;
     }
 
     getValue(vert: Vertex) : Value {
@@ -165,7 +176,15 @@ class Tile {
     }
 
     toString() : string {
-        return `Tile<${this.def.join(', ')}>`;
+        return `Tile${this.key()}`;
+    }
+
+    rotateTo(rot: Rotation): Tile {
+        return new Tile(this.def, rot);
+    }
+
+    rotate(rot: Rotation): Tile {
+        return this.rotateTo(<Rotation> (this.rot + rot));
     }
 
     // Determine the (clockwise) rotation of a tile to match the given
