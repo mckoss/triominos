@@ -15,13 +15,12 @@ type Rotation = 0 | 1 | 2;
 // The names of the positions of the triangle (left, top, right).
 type Vertex = 0 | 1 | 2;
 
-type TilePosKey = string;
 type VertPosKey = string;
 
 class Triomino {
-    board: Map<TilePosKey, Tile> = new Map();
+    board: Map<TilePos, Tile> = new Map();
     unplayed: Set<Tile>;
-    available: Map<TilePosKey, TilePos> = new Map();
+    available: Set<TilePos> = new Set();
     vertices: Map<VertPosKey, VertexInfo> = new Map();
 
     constructor(tiles = Triomino.includedTiles()) {
@@ -29,7 +28,7 @@ class Triomino {
 
         // The first tile must be played at the origin.
         let origin = new TilePos();
-        this.available.set(origin.key(), origin);
+        this.available.add(origin);
     }
 
     static includedTiles() : TileDef[] {
@@ -69,17 +68,17 @@ class Triomino {
         let tm = new Triomino([]);
         tm.board = new Map(this.board);
         tm.unplayed = new Set(this.unplayed);
-        tm.available = new Map(this.available);
+        tm.available = new Set(this.available);
         tm.vertices = cloneMap(this.vertices);
         return tm;
     }
 
     getTile(pos: TilePos): Tile | undefined {
-        return this.board.get(pos.key());
+        return this.board.get(pos);
     }
 
     isPosAvailable(pos: TilePos): boolean {
-        return this.available.has(pos.key());
+        return this.available.has(pos);
     }
 
     vertexValues(pos: TilePos) : (Value | undefined)[] {
@@ -120,15 +119,15 @@ class Triomino {
             throw Error(`No available play for ${tile} at ${pos}.`);
         }
         const rotatedTile = tile.rotateTo(rot);
-        this.board.set(pos.key(), rotatedTile);
+        this.board.set(pos, rotatedTile);
         this.unplayed.delete(tile);
-        this.available.delete(pos.key());
+        this.available.delete(pos);
 
         // Add any adjacent unoccupied board positions to the available
         // position set.
         for (let posT of pos.adjacentPositions()) {
             if (this.getTile(posT) === undefined) {
-                this.available.set(posT.key(), posT);
+                this.available.add(posT);
             }
         }
 
@@ -152,7 +151,8 @@ class Triomino {
 // This means they can be placed in Set's and used
 // as keys in Maps.
 
-const canonicalTiles: Map<string, Tile> = new Map();
+type TileKey = string;
+const canonicalTiles: Map<TileKey, Tile> = new Map();
 
 class Tile {
     readonly def: TileDef;
@@ -167,7 +167,7 @@ class Tile {
         canonicalTiles.set(this.key(), this);
     }
 
-    key(): string {
+    key(): TileKey {
         return `<${this.def.join(', ')}>${this.rot !== 0 ? '@' + this.rot : ''}`;
     }
 
@@ -206,6 +206,11 @@ class Tile {
     }
 }
 
+// TilePos is also an immutable value type.
+
+type TilePosKey = string;
+const canonicalTilePos: Map<TilePosKey, TilePos> = new Map();
+
 class TilePos {
     x: number;
     y: number;
@@ -213,6 +218,10 @@ class TilePos {
     constructor(x = 0, y= 0) {
         this.x = x;
         this.y = y;
+        if (canonicalTilePos.has(this.key())) {
+            return canonicalTilePos.get(this.key())!;
+        }
+        canonicalTilePos.set(this.key(), this);
     }
 
     key() : TilePosKey {

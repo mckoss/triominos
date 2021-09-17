@@ -3,12 +3,12 @@ import { cloneMap } from './clone-utils.js';
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
-        this.available = new Map();
+        this.available = new Set();
         this.vertices = new Map();
         this.unplayed = new Set(tiles.map((def) => new Tile(def)));
         // The first tile must be played at the origin.
         let origin = new TilePos();
-        this.available.set(origin.key(), origin);
+        this.available.add(origin);
     }
     static includedTiles() {
         let result = [];
@@ -41,15 +41,15 @@ class Triomino {
         let tm = new Triomino([]);
         tm.board = new Map(this.board);
         tm.unplayed = new Set(this.unplayed);
-        tm.available = new Map(this.available);
+        tm.available = new Set(this.available);
         tm.vertices = cloneMap(this.vertices);
         return tm;
     }
     getTile(pos) {
-        return this.board.get(pos.key());
+        return this.board.get(pos);
     }
     isPosAvailable(pos) {
-        return this.available.has(pos.key());
+        return this.available.has(pos);
     }
     vertexValues(pos) {
         return Array.from(pos.getVertices()).map(vpos => { var _a; return (_a = this.vertices.get(vpos.key())) === null || _a === void 0 ? void 0 : _a.value; });
@@ -84,14 +84,14 @@ class Triomino {
             throw Error(`No available play for ${tile} at ${pos}.`);
         }
         const rotatedTile = tile.rotateTo(rot);
-        this.board.set(pos.key(), rotatedTile);
+        this.board.set(pos, rotatedTile);
         this.unplayed.delete(tile);
-        this.available.delete(pos.key());
+        this.available.delete(pos);
         // Add any adjacent unoccupied board positions to the available
         // position set.
         for (let posT of pos.adjacentPositions()) {
             if (this.getTile(posT) === undefined) {
-                this.available.set(posT.key(), posT);
+                this.available.add(posT);
             }
         }
         // Update the vertex info
@@ -108,11 +108,6 @@ class Triomino {
         }
     }
 }
-// The Tile class returns IMMUTABLE objects.  Further, these
-// can be used as VALUE types; two tiles constructed from
-// the same parameters will return IDENTICAL objects.
-// This means they can be placed in Set's and used
-// as keys in Maps.
 const canonicalTiles = new Map();
 class Tile {
     constructor(def, rot = 0) {
@@ -155,10 +150,15 @@ class Tile {
         return undefined;
     }
 }
+const canonicalTilePos = new Map();
 class TilePos {
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
+        if (canonicalTilePos.has(this.key())) {
+            return canonicalTilePos.get(this.key());
+        }
+        canonicalTilePos.set(this.key(), this);
     }
     key() {
         return `${this.x}, ${this.y}`;

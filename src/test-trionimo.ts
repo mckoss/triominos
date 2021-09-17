@@ -106,7 +106,7 @@ suite('Triomino', () => {
         let tile = tm.unplayed.values().next().value;
 
         assert.equal(tm.available.size, 1);
-        assert.notEqual(tm.available.get('0, 0'), undefined);
+        assert.isTrue(tm.isPosAvailable(origin));
 
         tm.playTile(tile, origin);
         assert.equal(tm.available.size, 3);
@@ -116,8 +116,8 @@ suite('Triomino', () => {
         console.log('1');
         assert.equal(tm.available.size, 4);
 
-        assert.isTrue(tm.board.has('0, 0'));
-        assert.isTrue(tm.board.has('0, 1'));
+        assert.isTrue(tm.board.has(origin));
+        assert.isTrue(tm.board.has(new TilePos(0, 1)));
     });
 });
 
@@ -190,6 +190,17 @@ suite('Tile Position', () => {
         p = new TilePos(1, 2);
         assert.equal(p.key(), '1, 2');
     })
+
+    test('value type', () => {
+        let p1 = new TilePos();
+        let p2 = new TilePos(0, 0);
+        let p3 = new TilePos(0, 1);
+        assert.equal(p1, p2);
+        assert.notEqual(p1, p3);
+        let s: Set<TilePos> = new Set();
+        s.add(p1);
+        assert.isTrue(s.has(p2));
+    });
 
     test('adjacentPositions', () => {
         let tests = [
