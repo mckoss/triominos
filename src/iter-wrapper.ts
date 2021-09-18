@@ -113,7 +113,7 @@ function *_product(...xiters: (() => Iterable<any>)[]) : Generator<any[]> {
     }
 
     let i = 0;
-    while (true) {
+    do {
         // Initialize iterators from i to end.
         while (i < xiters.length) {
             // Fresh iterator has no elements!  Yield nothing.
@@ -137,9 +137,5 @@ function *_product(...xiters: (() => Iterable<any>)[]) : Generator<any[]> {
 
         // At this point, iterators starting at i
         // needs to be refreshed.
-
-        if (i === 0) {
-            return;
-        }
-    }
+    } while (i > 0);
 }
