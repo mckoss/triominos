@@ -1,5 +1,6 @@
 export { Triomino, Tile, TilePos, VertexPos };
 import { cloneMap } from './clone-utils.js';
+import { iwrap, product, range, xrange } from './iter-wrapper.js';
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
@@ -11,28 +12,14 @@ class Triomino {
         this.available.add(origin);
     }
     static includedTiles() {
-        let result = [];
-        for (let i = 0; i < 6; i++) {
-            for (let j = i; j < 6; j++) {
-                for (let k = j; k < 6; k++) {
-                    result.push([i, j, k]);
-                }
-            }
-        }
-        return result;
+        return iwrap(product(range(6), xrange(6), xrange(6)))
+            .filter(([a, b, c]) => a <= b && b <= c)
+            .array();
     }
     static missingTiles() {
-        let result = [];
-        for (let i = 0; i < 6; i++) {
-            for (let j = (i + 2); j < 6; j++) {
-                for (let k = (i + 1); k < 6; k++) {
-                    if (k < j) {
-                        result.push([i, j, k]);
-                    }
-                }
-            }
-        }
-        return result;
+        return iwrap(product(range(6), xrange(6), xrange(6)))
+            .filter(([a, b, c]) => b > a && c > a && c < b)
+            .array();
     }
     static allTiles() {
         return Triomino.includedTiles().concat(Triomino.missingTiles());

@@ -1,5 +1,6 @@
 export { Triomino, TileDef, Tile, Value, TilePos, VertexPos, Rotation };
 import { cloneMap, cloneSet } from './clone-utils.js';
+import { iwrap, product, range, xrange } from './iter-wrapper.js';
 
 type Value = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -32,32 +33,15 @@ class Triomino {
     }
 
     static includedTiles() : TileDef[] {
-        let result: TileDef[] = [];
-        
-        for (let i: Value = <Value> 0; i < 6; i++) {
-            for (let j: Value = i; j < 6; j++) {
-                for (let k: Value = j; k < 6; k++) {
-                    result.push([i, j, k]);
-                }
-            }
-        }
-        return result;
+        return iwrap(product(range(6), xrange(6), xrange(6)))
+            .filter(([a, b, c]) => a <= b && b <= c)
+            .array() as TileDef[];
     }
 
     static missingTiles() : TileDef[] {
-        let result: TileDef[] = [];
-
-        for (let i: Value = <Value> 0; i < 6; i++) {
-            for (let j: Value = <Value> (i + 2); j < 6; j++) {
-                for (let k: Value = <Value> (i + 1); k < 6; k++) {
-                    if (k < j) {
-                        result.push([i, j, k]);
-                    }
-                }
-            }
-        }
-
-        return result;
+        return iwrap(product(range(6), xrange(6), xrange(6)))
+            .filter(([a, b, c]) => b > a && c > a && c < b)
+            .array() as TileDef[];
     }
 
     static allTiles() : TileDef[] {
