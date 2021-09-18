@@ -1,4 +1,4 @@
-export { range, xrange, iwrap, IterWrapper, product };
+export { range, xrange, iwrap, IterWrapper, product, power };
 function iwrap(iterator) {
     return new IterWrapper(iterator);
 }
@@ -68,6 +68,10 @@ function xrange(start, stop, step = 1) {
 }
 function* product(outer, ...xiters) {
     yield* _product(() => outer, ...xiters);
+}
+function* power(xiter, pow) {
+    let args = Array(pow).fill(xiter);
+    yield* _product(...args);
 }
 function* _product(...xiters) {
     let iterators = [];

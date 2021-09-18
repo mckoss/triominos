@@ -1,4 +1,4 @@
-export { range, xrange, iwrap, IterWrapper, product };
+export { range, xrange, iwrap, IterWrapper, product, power };
 
 function iwrap<T>(iterator: Iterable<T>) {
     return new IterWrapper(iterator);
@@ -86,6 +86,11 @@ function xrange(start?: number, stop?: number, step: number = 1): () => Iterable
 
 function *product(outer: Iterable<any>, ...xiters: (() => Iterable<any>)[]) : Generator<any[]> {
     yield *_product(() => outer, ...xiters);
+}
+
+function *power<T>(xiter: () => Iterable<T>, pow: number): Generator<T[]> {
+    let args = Array(pow).fill(xiter);
+    yield *_product(...args);
 }
 
 function *_product(...xiters: (() => Iterable<any>)[]) : Generator<any[]> {

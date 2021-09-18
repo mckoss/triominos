@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha';
 import { assert } from 'chai';
-import { range, xrange, iwrap, product } from './iter-wrapper.js';
+import { range, xrange, iwrap, power } from './iter-wrapper.js';
 suite('Iter Wrapper', () => {
     test('iwrap range', () => {
         let squares = iwrap(range(5)).map(x => x * x).values();
@@ -22,11 +22,11 @@ suite('Iter Wrapper', () => {
         // Emulate Python List Comprehension
         // included = [[a, b, c] for a in range(6) for b in range(a, 6) for c in range(b, 6)]
         // missing = [[a, b, c] for a in range(6) for b in range(a+2, 6) for c in range(a+1, 6) if c < b]
-        let included = iwrap(product(range(6), xrange(6), xrange(6)))
+        let included = iwrap(power(xrange(6), 3))
             .filter(([a, b, c]) => a <= b && b <= c)
             .array();
         assert.equal(included.length, 56);
-        let missing = iwrap(product(range(6), xrange(6), xrange(6)))
+        let missing = iwrap(power(xrange(6), 3))
             .filter(([a, b, c]) => b > a && c > a && c < b)
             .array();
         assert.equal(missing.length, 20);
