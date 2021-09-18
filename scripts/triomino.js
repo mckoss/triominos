@@ -1,6 +1,6 @@
 export { Triomino, Tile, TilePos, VertexPos };
 import { cloneMap } from './clone-utils.js';
-import { iwrap, product, range, xrange, power } from './iter-wrapper.js';
+import { iwrap, xrange, power } from './iter-wrapper.js';
 class Triomino {
     constructor(tiles = Triomino.includedTiles()) {
         this.board = new Map();
@@ -17,7 +17,7 @@ class Triomino {
             .array();
     }
     static missingTiles() {
-        return iwrap(product(range(6), xrange(6), xrange(6)))
+        return iwrap(power(xrange(6), 3))
             .filter(([a, b, c]) => b > a && c > a && c < b)
             .array();
     }

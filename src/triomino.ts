@@ -39,7 +39,7 @@ class Triomino {
     }
 
     static missingTiles() : TileDef[] {
-        return iwrap(product(range(6), xrange(6), xrange(6)))
+        return iwrap(power(xrange(6), 3))
             .filter(([a, b, c]) => b > a && c > a && c < b)
             .array() as TileDef[];
     }
