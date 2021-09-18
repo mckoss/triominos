@@ -24,6 +24,20 @@ class IterWrapper {
             }
         }
     }
+    limit(count) {
+        return iwrap(this._limit(count));
+    }
+    *_limit(count) {
+        if (count <= 0) {
+            return;
+        }
+        for (let x of this.iterable) {
+            yield x;
+            if (--count <= 0) {
+                return;
+            }
+        }
+    }
     pair(iter) {
         return iwrap(this._pair(iter));
     }

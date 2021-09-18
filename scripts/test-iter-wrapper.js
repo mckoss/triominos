@@ -15,6 +15,9 @@ suite('Iter Wrapper', () => {
     test('filter', () => {
         assert.deepEqual(iwrap(range(10)).filter(x => x % 2 === 0).array(), [0, 2, 4, 6, 8]);
     });
+    test('limit', () => {
+        assert.equal(iwrap(range(100)).limit(10).array().length, 10);
+    });
     test('tuple', () => {
         assert.deepEqual(iwrap(range(3)).pair(xrange(2)).array(), [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]);
     });

@@ -33,6 +33,23 @@ class IterWrapper<T> {
         }
     }
 
+    limit(count: number): IterWrapper<T> {
+        return iwrap(this._limit(count));
+    }
+
+    *_limit(count: number): Generator<T> {
+        if (count <= 0) {
+            return;
+        }
+
+        for (let x of this.iterable) {
+            yield x;
+            if (--count <= 0) {
+                return;
+            }
+        }
+    }
+
     pair<U>(iter: () => Iterable<U>): IterWrapper<[T, U]> {
         return iwrap(this._pair(iter));
     }
